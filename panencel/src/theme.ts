@@ -8,6 +8,10 @@ export const colors = {
   border: '#E8D9C8',
   danger: '#C0392B',
   success: '#2E7D32',
+  //colores agregados por emmanuel
+  cream: '#F6E9D8',
+  onPrimary: '#FFFFFF',
+  overlay: 'rgba(59,42,26,0.5)',
 };
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };

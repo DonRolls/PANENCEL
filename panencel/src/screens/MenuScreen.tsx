@@ -1,43 +1,39 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+// CAMBIO 1: se quitó `Alert` de los imports porque ya no mostramos la alerta
+// "Pedido en preparación"; ahora el botón Continuar navega a la pantalla de pedido.
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppButton } from '../components/AppButton';
 import { useAuth } from '../context/AuthContext';
+// CAMBIO 2: se importa el nuevo contexto del carrito.
+import { useCart } from '../context/CartContext';
 import { CATEGORIES, PRODUCTS } from '../data/mockData';
 import { Product } from '../types';
 import { colors, radius, spacing } from '../theme';
 
 const ALL = 'Todos';
 
-export function MenuScreen() {
+// CAMBIO 3: ahora recibe `onContinue` por props. Antes la pantalla no sabía
+// cómo avanzar; así App.tsx decide a dónde ir (Checkout) y MenuScreen solo avisa
+// que el usuario quiere continuar.
+interface Props {
+  onContinue: () => void;
+}
+
+export function MenuScreen({ onContinue }: Props) {
   const { user, logout } = useAuth();
   const [category, setCategory] = useState<string>(ALL);
-  const [cart, setCart] = useState<Record<string, number>>({});
+
+  // CAMBIO 4: el carrito ya no vive en un useState local de esta pantalla.
+  // Si se quedaba aquí, al pasar a Checkout se perdería (MenuScreen se desmonta).
+  // Ahora vive en CartContext y lo compartimos entre Menú, Checkout y Pedido listo.
+  // Reemplaza a: useState del carrito, el useMemo de { total, count }, y las
+  // funciones `add` y `remove` que antes estaban definidas aquí.
+  const { cart, total, count, add, remove } = useCart();
 
   const visibleProducts = useMemo(
     () => (category === ALL ? PRODUCTS : PRODUCTS.filter((p) => p.category === category)),
     [category],
   );
-
-  const { total, count } = useMemo(() => {
-    let t = 0;
-    let c = 0;
-    for (const p of PRODUCTS) {
-      const q = cart[p.id] ?? 0;
-      t += q * p.price;
-      c += q;
-    }
-    return { total: t, count: c };
-  }, [cart]);
-
-  const add = (p: Product) => setCart((prev) => ({ ...prev, [p.id]: (prev[p.id] ?? 0) + 1 }));
-  const remove = (p: Product) =>
-    setCart((prev) => {
-      const q = (prev[p.id] ?? 0) - 1;
-      const next = { ...prev };
-      if (q <= 0) delete next[p.id];
-      else next[p.id] = q;
-      return next;
-    });
 
   const renderItem = ({ item }: { item: Product }) => {
     const qty = cart[item.id] ?? 0;
@@ -112,12 +108,9 @@ export function MenuScreen() {
             <Text style={styles.footerTotal}>Total: ${total.toFixed(2)}</Text>
           </View>
           <View style={{ width: 150 }}>
-            <AppButton
-              title="Continuar"
-              onPress={() =>
-                Alert.alert('Pedido en preparación', 'El proceso de pago se desarrollará en la siguiente actividad.')
-              }
-            />
+            {/* CAMBIO 5: antes abría Alert.alert('Pedido en preparación', ...).
+                Ahora llama a onContinue para ir a la pantalla "Tu pedido". */}
+            <AppButton title="Continuar" onPress={onContinue} />
           </View>
         </View>
       )}
@@ -125,6 +118,7 @@ export function MenuScreen() {
   );
 }
 
+// Los estilos no cambiaron.
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',

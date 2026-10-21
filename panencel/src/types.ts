@@ -18,3 +18,14 @@ export interface Product {
 }
 
 export type AuthResult = { ok: true } | { ok: false; message: string };
+
+//funciones agregadas por emmanuel
+
+export type PaymentMethod = 'efectivo' | 'tarjeta';
+
+export interface Order {
+  code: string;
+  total: number;
+  count: number;
+  method: PaymentMethod;
+}
