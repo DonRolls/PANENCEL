@@ -29,3 +29,15 @@ export interface Order {
   count: number;
   method: PaymentMethod;
 }
+
+export type CatalogStatus = 'active' | 'inactive';
+
+export interface Catalog {
+  id: string;
+  name: string;
+  description: string;
+  status: CatalogStatus;
+  productIds: string[];
+}
+
+export type Period = 'today' | 'week' | 'month';
