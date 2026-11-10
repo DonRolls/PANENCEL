@@ -1,0 +1,11 @@
+nombre del proyecto: panencel
+
+password: 8A9plQnjd.p
+
+
+
+npm install -g supabase
+
+supabase login
+
+supabase init

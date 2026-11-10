@@ -1,5 +1,10 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## Workspace structure
+
+- The active Expo app is in `panencel/`. Run Expo, npm, lint, typecheck, and app-specific commands from that directory and use its `package.json` and `app.json`.
+- `duplicados/` is an archive of the former root-level app files; do not build from it or import from it into the active app.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
@@ -13,7 +18,7 @@ Expo ships breaking changes every SDK release. APIs you remember are likely rena
 Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
+npx expo install  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
 npx expo start              # start the dev server
 npx expo lint               # lint
 npx tsc --noEmit            # typecheck
