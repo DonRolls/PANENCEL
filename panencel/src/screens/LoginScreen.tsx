@@ -10,18 +10,26 @@ interface Props {
 }
 
 export function LoginScreen({ onGoRegister }: Props) {
-  const { login, loginAsGuest } = useAuth();
+  const { authError, login, loginAsGuest } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email.trim() || !password) {
       setError('Ingresa tu correo y contraseña.');
       return;
     }
-    const result = login(email, password);
-    if (!result.ok) setError(result.message);
+    setSubmitting(true);
+    try {
+      const result = await login(email, password);
+      if (!result.ok) setError(result.message);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo iniciar sesión.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -55,18 +63,23 @@ export function LoginScreen({ onGoRegister }: Props) {
           }}
         />
 
-        {!!error && <Text style={styles.error}>{error}</Text>}
+        {!!(error || authError) && (
+          <Text style={styles.error}>{error || authError}</Text>
+        )}
 
         <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-          <AppButton title="Iniciar sesión" onPress={handleLogin} />
-          <AppButton title="Crear cuenta" variant="outline" onPress={onGoRegister} />
+          <AppButton
+            title={submitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
+            onPress={handleLogin}
+            disabled={submitting}
+          />
+          <AppButton
+            title="Crear cuenta"
+            variant="outline"
+            onPress={onGoRegister}
+            disabled={submitting}
+          />
           <AppButton title="Explorar como invitado" variant="link" onPress={loginAsGuest} />
-        </View>
-
-        <View style={styles.hint}>
-          <Text style={styles.hintTitle}>Cuentas de prueba</Text>
-          <Text style={styles.hintText}>admin@panencel.com / admin123</Text>
-          <Text style={styles.hintText}>cliente@panencel.com / cliente123</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -85,12 +98,4 @@ const styles = StyleSheet.create({
   },
   subtitle: { color: colors.muted, textAlign: 'center', marginBottom: spacing.lg },
   error: { color: colors.danger, marginBottom: spacing.sm },
-  hint: {
-    marginTop: spacing.lg,
-    padding: spacing.md,
-    borderRadius: 12,
-    backgroundColor: '#F6E9D8',
-  },
-  hintTitle: { fontWeight: '700', color: colors.text, marginBottom: 4 },
-  hintText: { color: colors.muted },
 });

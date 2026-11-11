@@ -5,24 +5,33 @@ import { colors, radius } from '../theme';
 interface Props {
   title: string;
   onPress: () => void;
+  disabled?: boolean;
   //agregue dark button emmanuel
  variant?: 'primary' | 'dark' | 'outline' | 'link';
 }
 
-export function AppButton({ title, onPress, variant = 'primary' }: Props) {
+export function AppButton({ title, onPress, variant = 'primary', disabled = false }: Props) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={({ pressed }) => [
         styles.base,
         variant === 'primary' && styles.primary,
         variant === 'outline' && styles.outline,
         variant === 'link' && styles.link,
         variant === 'dark' && styles.dark,
-        pressed && { opacity: 0.75 },
+        (pressed || disabled) && { opacity: 0.75 },
       ]}
     >
-      <Text style={[styles.text, variant !== 'primary' && { color: colors.primary }]}>{title}</Text>
+      <Text
+        style={[
+          styles.text,
+          (variant === 'outline' || variant === 'link') && { color: colors.primary },
+        ]}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 }

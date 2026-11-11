@@ -18,20 +18,31 @@ export function RegisterScreen({ onGoLogin }: Props) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!name.trim()) return setError('Ingresa tu nombre.');
     if (!EMAIL_REGEX.test(email.trim())) return setError('Ingresa un correo válido.');
     if (password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres.');
     if (password !== confirm) return setError('Las contraseñas no coinciden.');
 
-    const result = register(name, email, password);
-    if (!result.ok) setError(result.message);
+    setSubmitting(true);
+    try {
+      const result = await register(name, email, password);
+      if (!result.ok) setError(result.message);
+      else setMessage(result.message ?? 'Cuenta creada.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo crear la cuenta.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const onChange = (setter: (v: string) => void) => (v: string) => {
     setter(v);
     setError('');
+    setMessage('');
   };
 
   return (
@@ -49,10 +60,20 @@ export function RegisterScreen({ onGoLogin }: Props) {
         <AppInput label="Confirmar contraseña" placeholder="Repite tu contraseña" secure value={confirm} onChangeText={onChange(setConfirm)} />
 
         {!!error && <Text style={styles.error}>{error}</Text>}
+        {!!message && <Text style={styles.success}>{message}</Text>}
 
         <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-          <AppButton title="Registrarme" onPress={handleRegister} />
-          <AppButton title="Ya tengo cuenta" variant="link" onPress={onGoLogin} />
+          <AppButton
+            title={submitting ? 'Creando cuenta…' : 'Registrarme'}
+            onPress={handleRegister}
+            disabled={submitting}
+          />
+          <AppButton
+            title="Ya tengo cuenta"
+            variant="link"
+            onPress={onGoLogin}
+            disabled={submitting}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -64,4 +85,5 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: colors.primary, textAlign: 'center' },
   subtitle: { color: colors.muted, textAlign: 'center', marginBottom: spacing.lg },
   error: { color: colors.danger, marginBottom: spacing.sm },
+  success: { color: '#1B5E20', marginBottom: spacing.sm },
 });

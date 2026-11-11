@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { PRODUCTS } from '../data/mockData';
-import { Product } from '../types';
+import { Product } from '../../models/producto';
 
 export interface CartLine {
   product: Product;
@@ -12,8 +11,10 @@ interface CartContextValue {
   lines: CartLine[]; // solo productos con cantidad > 0
   total: number;
   count: number;
+  setProducts: (products: Product[]) => void;
   add: (p: Product) => void;
   remove: (p: Product) => void;
+  removeLine: (p: Product) => void;
   clear: () => void;
 }
 
@@ -21,6 +22,7 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [products, setProducts] = useState<Product[]>([]);
 
   const add = useCallback(
     (p: Product) => setCart((prev) => ({ ...prev, [p.id]: (prev[p.id] ?? 0) + 1 })),
@@ -37,13 +39,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const removeLine = useCallback((p: Product) => {
+    setCart((prev) => {
+      const next = { ...prev };
+      delete next[p.id];
+      return next;
+    });
+  }, []);
+
   const clear = useCallback(() => setCart({}), []);
 
   const value = useMemo<CartContextValue>(() => {
     const lines: CartLine[] = [];
     let total = 0;
     let count = 0;
-    for (const product of PRODUCTS) {
+    for (const product of products) {
       const qty = cart[product.id] ?? 0;
       if (qty > 0) {
         lines.push({ product, qty });
@@ -51,8 +61,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         count += qty;
       }
     }
-    return { cart, lines, total, count, add, remove, clear };
-  }, [cart, add, remove, clear]);
+    return { cart, lines, total, count, setProducts, add, remove, removeLine, clear };
+  }, [cart, products, setProducts, add, remove, removeLine, clear]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
